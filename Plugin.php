@@ -1,4 +1,3 @@
-
 <?php
 
 /**
@@ -10,7 +9,7 @@
  * @link https://www.starroad.top
  */
 
-require_once('mirai.php')
+require_once('mirai.php');
 
 class Comment2QQ_Plugin implements Typecho_Plugin_Interface
 {
