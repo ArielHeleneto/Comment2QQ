@@ -1,3 +1,4 @@
+
 <?php
 
 /**
@@ -38,6 +39,7 @@ class Comment2QQ_Plugin implements Typecho_Plugin_Interface
      */
     public static function deactivate(){}
     
+    
     /**
      * 获取插件配置面板
      * 
@@ -45,7 +47,19 @@ class Comment2QQ_Plugin implements Typecho_Plugin_Interface
      * @param Typecho_Widget_Helper_Form $form 配置面板
      * @return void
      */
-    public static function config(Typecho_Widget_Helper_Form $form){}
+    public static function config(Typecho_Widget_Helper_Form $form){
+        $authKey = new Typecho_Widget_Helper_Form_Element_Text('authKey', NULL, '123456789', _t('authKey'), _t('需要输入authKey'));
+        $form->addInput($authKey->addRule('required', _t('您必须填写一个正确的authKey')));
+        $server = new Typecho_Widget_Helper_Form_Element_Text('server', NULL, 'http://localhost:8080', _t('server'), _t('需要输入服务器地址'));
+        $form->addInput($server->addRule('required', _t('您必须填写一个正确的server')));
+        $botQQ = new Typecho_Widget_Helper_Form_Element_Text('botQQ', NULL, NULL, _t('botQQ'), _t('需要输入botQQ'));
+        $form->addInput($botQQ->addRule('required', _t('您必须填写一个正确的botQQ')));
+        $Mode = new Typecho_Widget_Helper_Form_Element_Radio('mode', array ('0' => '私聊', '1' => '群聊'), 0, '推送消息对象','');
+        $form->addInput($Mode->addRule('enum', _t('必须选择一个模式'), array(0, 1)));
+        $masterQQ = new Typecho_Widget_Helper_Form_Element_Text('masterQQ', NULL, NULL, _t('masterQQ'), _t('需要输入masterQQ'));
+        $form->addInput($masterQQ->addRule('required', _t('您必须填写一个正确的masterQQ')));
+    }
+
 
     /**
      * 个人用户的配置面板
