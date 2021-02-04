@@ -9,6 +9,8 @@
  * @link https://www.starroad.top
  */
 
+require_once('mirai.php')
+
 class Comment2QQ_Plugin implements Typecho_Plugin_Interface
 {
     /**
@@ -53,5 +55,11 @@ class Comment2QQ_Plugin implements Typecho_Plugin_Interface
      * @return void
      */
     public static function personalConfig(Typecho_Widget_Helper_Form $form){}
+
+    public static function comment_send($comment, $post){
+        $text = $comment->author . ' 在 "' . $comment->title . '"(#' . $comment->cid . ') 中说到: 
+> ' . $comment->text . ' (#' . $comment->coid . ')';
+        mirai_push($text);
+    }
     
 }
