@@ -5,15 +5,15 @@
 // 以下参数为主参数
 // mirai推送地址 *单引号
 
-$_cfg = $GLOBALS['options']->plugin('Comment2QQ');
+$_cfg = Helper::options()->plugin('Comment2QQ');
 
 $mirai_main_url = $_cfg->server;
 // mirai机器人qq *无需引号
 $miraiid = $_cfg->botQQ;
 // mirai认证密钥 *单引号
-$miraikey = $_cfg->authkey;
+$miraikey = $_cfg->authKey;
 // 推送消息对象 私聊'/sendFriendMessage'，群聊'/sendGroupMessage'
-if($Mode==0){
+if($_cfg->mode==0){
     $mirai_push_url = $mirai_main_url.'/sendFriendMessage';
 }
 else{
@@ -26,4 +26,3 @@ $mirai_push_id = $_cfg->masterQQ;
 $mirai_auth_url = $mirai_main_url.'//auth';
 $mirai_verify_url = $mirai_main_url.'//verify';
 
-?>
