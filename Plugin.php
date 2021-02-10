@@ -70,7 +70,7 @@ class Comment2QQ_Plugin implements Typecho_Plugin_Interface
 
     public static function comment_send($comment, $post){
         $text = $comment->author . ' 在 "' . $comment->title . '"(#' . $comment->cid . ') 中说到: 
-> ' . $comment->text . ' (#' . $comment->coid . ')';
+> ' . $comment->text . ' (#' . $comment->coid . ')'."（".($comment->link)."）";
         mirai_push($text);
     }
     
