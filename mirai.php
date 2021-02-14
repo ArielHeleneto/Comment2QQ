@@ -38,7 +38,12 @@ function mirai_push($text) { //发送的内容
     // 发送对mirai的POST请求
     $mirai_result = file_get_contents($mirai_push_url, false, $mirai_context);
     var_dump($mirai_result);
+    // mirai会话释放
+    // 组合POST数据
+    $mirai_release_data = json_encode(array('sessionKey' => $mirai_push_session, 'qq' => $miraiid));
+    $mirai_release_opts = array('http' => array('method' => 'POST', 'header' => 'Content-type: application/json', 'content' => $mirai_release_data));
+    $mirai_release_context = stream_context_create($mirai_release_opts);
+    // 发送对mirai的POST请求
+    $mirai_release_return = json_decode(file_get_contents($mirai_release_url, false, $mirai_release_context), true);
 }
-
-//mirai_push('ucw is now testing...');
-
+?>
