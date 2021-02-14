@@ -1,49 +1,77 @@
 <?php
-/*
-插件内容推送代码，请勿随意修改，更改配置请修改config.php
-*/
-// 获取推送文字部分
-function mirai_push($text) { //发送的内容
-    // 手动更新session，并加载参数
-    // 加载认证参数
-    require ('config.php');
-    // mirai会话开始-认证-获取session
-    // 组合POST数据
-    $mirai_auth_data = json_encode(array('authKey' => $miraikey));
-    var_dump($mirai_auth_data);
-    $mirai_auth_opts = array('http' => array('method' => 'POST', 'header' => 'Content-type: application/json', 'content' => $mirai_auth_data));
-    $mirai_auth_context = stream_context_create($mirai_auth_opts);
-    var_dump($mirai_auth_context);
-    // 发送对mirai的POST请求
-    $mirai_auth_return = json_decode(file_get_contents($mirai_auth_url, false, $mirai_auth_context), true);
-    var_dump($mirai_auth_return);
-    if (!isset($mirai_auth_return['code']) || $mirai_auth_return['code'] != 0) return false;
-    // 截取session
-    $mirai_push_session = $mirai_auth_return['session'];
-    // mirai会话校验
-    // 组合POST数据
-    $mirai_verify_data = json_encode(array('sessionKey' => $mirai_push_session, 'qq' => $miraiid));
-    $mirai_verify_opts = array('http' => array('method' => 'POST', 'header' => 'Content-type: application/json', 'content' => $mirai_verify_data));
-    $mirai_verify_context = stream_context_create($mirai_verify_opts);
-    // 发送对mirai的POST请求
-    $mirai_verify_return = json_decode(file_get_contents($mirai_verify_url, false, $mirai_verify_context), true);
-    var_dump($mirai_verify_return);
-    if (!isset($mirai_verify_return['code']) || $mirai_verify_return['code'] != 0) return false;
-    // 以下为mirai推送
-    // 数据转化为json格式
-    $mirai_postdata = json_encode(array('sessionKey' => $mirai_push_session, 'target' => $mirai_push_id, 'messageChain' => array(0 => array('type' => 'Plain', 'text' => $text)))); //此处可自行添加指令，如at全体成员
-    // 组合POST数据
-    $mirai_opts = array('http' => array('method' => 'POST', 'header' => 'Content-type: application/json', 'content' => $mirai_postdata));
-    $mirai_context = stream_context_create($mirai_opts);
-    // 发送对mirai的POST请求
-    $mirai_result = file_get_contents($mirai_push_url, false, $mirai_context);
-    var_dump($mirai_result);
-    // mirai会话释放
-    // 组合POST数据
-    $mirai_release_data = json_encode(array('sessionKey' => $mirai_push_session, 'qq' => $miraiid));
-    $mirai_release_opts = array('http' => array('method' => 'POST', 'header' => 'Content-type: application/json', 'content' => $mirai_release_data));
-    $mirai_release_context = stream_context_create($mirai_release_opts);
-    // 发送对mirai的POST请求
-    $mirai_release_return = json_decode(file_get_contents($mirai_release_url, false, $mirai_release_context), true);
+if (!defined('__TYPECHO_ROOT_DIR__')) exit;
+
+class MiraiException extends Exception {}
+
+/**
+ * Mirai 功能类
+ */
+class Mirai {
+    /**
+     * 发送请求
+     * 
+     * @access protected
+     * @param string $url
+     * @param array $content
+     * @throws MiraiException
+     * @return array
+     */
+    protected static function request($url, $content) {
+        $cxt = stream_context_create(array(
+            'http' => array(
+                'method' => 'POST',
+                'header' => 'Content-type: application/json',
+                'content' => json_encode($content)
+            )
+        ));
+        $resp = file_get_contents($url, false, $cxt);
+        if (!$resp) {
+            throw new MiraiException('后端与 Mirai 交互失败');
+            return array();
+        }
+        $resp = json_decode($resp, true);
+        if (!$resp) {
+            throw new MiraiException('后端与 Mirai 交互失败');
+            return array();
+        }
+        return $resp;
+    }
+
+    /**
+     * 推送到 Mirai
+     * 
+     * @access public
+     * @param string $text
+     * @throws MiraiException
+     * @return bool
+     */
+    public static function push($text) {
+        $options = Helper::options()->plugin('Comment2QQ');
+        $base = $options->server;
+        $resp = self::request("{$base}/auth", array('authKey' => $options->authKey));
+        if (!isset($resp['code']) || $resp['code'] !== 0) {
+            throw new MiraiException('Mirai 会话认证失败');
+            return false;
+        }
+        $session = $resp['session'];
+        $resp = self::request("{$base}/verify", array('sessionKey' => $session, 'qq' => $options->botQQ));
+        if (!isset($resp['code']) || $resp['code'] !== 0) {
+            throw new MiraiException('Mirai 会话校验失败');
+            return false;
+        }
+        $resp = self::request(
+            $base . ($options->mode == 0 ? '/sendFriendMessage' : '/sendGroupMessage'),
+            array(
+                'sessionKey' => $session,
+                'target' => $options->masterQQ,
+                'messageChain' => array(0 => array('type' => 'Plain', 'text' => $text))
+            )
+        );
+        if (!isset($resp['code']) || $resp['code'] !== 0) {
+            // throw new MiraiException('Mirai 推送失败'); // 不建议在此处抛出异常 建议记录日志
+            return false;
+        }
+        self::request("{$base}/release", array('sessionKey' => $session, 'qq' => $options->botQQ));
+        return true;
+    }
 }
-?>
