@@ -25,4 +25,4 @@ $mirai_push_id = $_cfg->masterQQ;
 // 以下参数无需手动填写
 $mirai_auth_url = $mirai_main_url.'//auth';
 $mirai_verify_url = $mirai_main_url.'//verify';
-
+$mirai_release_url = $mirai_main_url.'//release';
