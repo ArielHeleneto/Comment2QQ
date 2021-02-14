@@ -5,7 +5,7 @@
  * 
  * @package Comment2QQ
  * @author ArielHeleneto
- * @version 0.1.0
+ * @version 0.2.0
  * @link https://www.starroad.top
  */
 
